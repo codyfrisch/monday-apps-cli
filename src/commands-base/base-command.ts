@@ -51,6 +51,17 @@ export abstract class BaseCommand extends Command {
       default: false,
       helpGroup: 'global',
     }),
+
+    'token-name': Flags.string({
+      description: 'Named credential to resolve via tokenCommand (substitutes {{name}} in the command).',
+      helpGroup: 'global',
+    }),
+
+    'ignore-token-command': Flags.boolean({
+      description: 'Skip tokenCommand resolution and use accessToken from .mappsrc instead.',
+      default: false,
+      helpGroup: 'global',
+    }),
   };
 
   protected catch(err: Error & { exitCode?: number }): any {
