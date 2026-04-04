@@ -77,7 +77,7 @@ export async function handlePackageVersionUpdate() {
         message: `${isUpdateRequired ? 'Required u' : 'U'}pdate available ${chalk.dim(
           notifier.update.current,
         )} → ${chalk.green(notifier.update.latest)} 
-        Please run ${chalk.cyan('npm i -g @mondaycom/apps-cli')} to update
+        Please run ${chalk.cyan('npm i -g @carbonappsco/apps-cli')} to update
         To update automatically, run ${chalk.cyan('mapps -u <YOUR_COMMAND>')}`,
       });
       if (VERSION_WHICH_DEMAND_AN_UPDATE.includes(notifier.update.type)) {

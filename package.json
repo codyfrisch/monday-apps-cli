@@ -1,5 +1,5 @@
 {
-  "name": "@mondaycom/apps-cli",
+  "name": "@carbonappsco/apps-cli",
   "version": "4.10.8",
   "description": "A cli tool to manage apps (and monday-code projects) in monday.com",
   "author": "monday.com Apps Team",
@@ -7,10 +7,10 @@
   "bin": {
     "mapps": "./bin/run.js"
   },
-  "homepage": "https://github.com/mondaycom/monday-apps-cli",
+  "homepage": "https://github.com/carbonappsco/monday-apps-cli",
   "license": "MIT",
   "main": "dist/index.js",
-  "repository": "mondaycom/monday-apps-cli",
+  "repository": "carbonappsco/monday-apps-cli",
   "files": [
     "/bin",
     "/dist",
@@ -37,7 +37,7 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "bugs": "https://github.com/mondaycom/monday-apps-cli/issues",
+  "bugs": "https://github.com/carbonappsco/monday-apps-cli/issues",
   "keywords": [
     "monday.com",
     "monday",
