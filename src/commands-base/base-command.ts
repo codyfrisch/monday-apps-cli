@@ -5,6 +5,8 @@ import { printGeneratedCommand } from 'utils/command-printer';
 import logger from 'utils/logger';
 
 export abstract class BaseCommand extends Command {
+  static enableJsonFlag = true;
+
   protected static _withPrintCommand = true;
   private _printCommandCalled = false;
   private _printContext: PrintCommandContext = { command: this };
@@ -70,7 +72,7 @@ export abstract class BaseCommand extends Command {
       printGeneratedCommand(this._printContext.command, this._printContext.flags, this._printContext.args);
     }
 
-    if (this.forcefullyExitAfterRun) {
+    if (this.forcefullyExitAfterRun && !this.jsonEnabled()) {
       return process.exit(0);
     }
   }

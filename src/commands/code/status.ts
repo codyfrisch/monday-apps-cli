@@ -13,25 +13,6 @@ import { addRegionToFlags, chooseRegionIfNeeded, getRegionFromString } from 'uti
 
 const DEBUG_TAG = 'code_status';
 
-const printDeploymentStatus = (
-  appVersionId: number,
-  deploymentStatus: Pick<AppVersionDeploymentStatus, 'deployment' | 'status' | 'error'>,
-) => {
-  const { deployment, status, error } = deploymentStatus;
-  const url = deployment?.url || 'none';
-  const liveUrl = deployment?.liveUrl;
-  const errorMessage: string | undefined = error?.message;
-  const tableData = {
-    id: appVersionId,
-    status,
-    url,
-    ...(liveUrl && { liveUrl }),
-    ...(errorMessage && { errorMessage }),
-  };
-
-  logger.table([tableData]);
-};
-
 export default class Status extends AuthenticatedCommand {
   static description = 'Status of a specific project hosted on monday-code.';
 
@@ -47,7 +28,7 @@ export default class Status extends AuthenticatedCommand {
     }),
   );
 
-  public async run(): Promise<void> {
+  public async run(): Promise<AppVersionDeploymentStatus & { appVersionId: number }> {
     const { flags } = await this.parse(Status);
     const { region: strRegion } = flags;
     const region = getRegionFromString(strRegion);
@@ -68,7 +49,19 @@ export default class Status extends AuthenticatedCommand {
         deploymentStatus.deployment.liveUrl = mondayCodeRelease?.data?.liveUrl;
       }
 
-      printDeploymentStatus(appVersionId, deploymentStatus);
+      if (!this.jsonEnabled()) {
+        const { deployment, status, error } = deploymentStatus;
+        const tableData = {
+          id: appVersionId,
+          status,
+          url: deployment?.url || 'none',
+          ...(deployment?.liveUrl && { liveUrl: deployment.liveUrl }),
+          ...(error?.message && { errorMessage: error.message }),
+        };
+        logger.table([tableData]);
+      }
+
+      return { ...deploymentStatus, appVersionId };
     } catch (error: unknown) {
       logger.debug({ res: error }, DEBUG_TAG);
       if (error instanceof HttpError && error.code === StatusCodes.NOT_FOUND) {

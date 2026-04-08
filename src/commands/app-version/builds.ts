@@ -10,21 +10,6 @@ import { AppRelease } from 'services/schemas/app-releases-schema';
 import { HttpError } from 'types/errors';
 import logger from 'utils/logger';
 
-const printBuilds = (appBuilds: Array<AppRelease>) => {
-  const appBuildsTable = appBuilds.map(appBuild => {
-    return {
-      category: appBuild.category,
-      ...(appBuild.data?.liveUrl && { 'live url': appBuild.data?.liveUrl }),
-      ...(appBuild.data?.url && { url: appBuild.data?.url }),
-      ...(appBuild.data?.latestUrl && { 'static url (latest deployment)': appBuild.data?.latestUrl }),
-      ...(appBuild.data?.sourceUrl && { 'source url (download)': appBuild.data?.sourceUrl }),
-      ...(appBuild.data?.microFrontendName && { 'micro frontend name': appBuild.data?.microFrontendName }),
-    };
-  });
-
-  logger.table(appBuildsTable);
-};
-
 export default class AppVersionBuilds extends AuthenticatedCommand {
   static description = 'List all builds for a specific app version';
   static examples = ['<%= config.bin %> <%= command.id %> -i APP_VERSION_ID'];
@@ -38,7 +23,7 @@ export default class AppVersionBuilds extends AuthenticatedCommand {
 
   DEBUG_TAG = 'app_version_builds';
 
-  public async run(): Promise<void> {
+  public async run(): Promise<Array<AppRelease>> {
     const { flags } = await this.parse(Status);
     let appVersionId = flags.appVersionId;
     if (!appVersionId) {
@@ -49,7 +34,20 @@ export default class AppVersionBuilds extends AuthenticatedCommand {
     try {
       this.preparePrintCommand(this, { appVersionId });
       const appReleases = await listAppBuilds(appVersionId);
-      printBuilds(appReleases);
+
+      if (!this.jsonEnabled()) {
+        const appBuildsTable = appReleases.map(appBuild => ({
+          category: appBuild.category,
+          ...(appBuild.data?.liveUrl && { 'live url': appBuild.data?.liveUrl }),
+          ...(appBuild.data?.url && { url: appBuild.data?.url }),
+          ...(appBuild.data?.latestUrl && { 'static url (latest deployment)': appBuild.data?.latestUrl }),
+          ...(appBuild.data?.sourceUrl && { 'source url (download)': appBuild.data?.sourceUrl }),
+          ...(appBuild.data?.microFrontendName && { 'micro frontend name': appBuild.data?.microFrontendName }),
+        }));
+        logger.table(appBuildsTable);
+      }
+
+      return appReleases;
     } catch (error: unknown) {
       if (error instanceof HttpError && error.code === StatusCodes.NOT_FOUND) {
         logger.error(`No builds found for provided app version id - "${appVersionId}"`);

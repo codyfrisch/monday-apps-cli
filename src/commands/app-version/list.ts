@@ -7,10 +7,6 @@ import { DynamicChoicesService } from 'services/dynamic-choices-service';
 import { AppVersion } from 'types/services/app-versions-service';
 import logger from 'utils/logger';
 
-const printAppVersions = (appVersions: Array<AppVersion>) => {
-  logger.table(appVersions);
-};
-
 export default class AppVersionList extends AuthenticatedCommand {
   DEBUG_TAG = 'app_version_list';
 
@@ -26,7 +22,7 @@ export default class AppVersionList extends AuthenticatedCommand {
     }),
   });
 
-  public async run(): Promise<void> {
+  public async run(): Promise<Array<AppVersion>> {
     const { flags } = await this.parse(AppVersionList);
 
     let appId = flags.appId;
@@ -41,6 +37,10 @@ export default class AppVersionList extends AuthenticatedCommand {
       return process.exit(0);
     }
 
-    printAppVersions(appVersions);
+    if (!this.jsonEnabled()) {
+      logger.table(appVersions);
+    }
+
+    return appVersions;
   }
 }

@@ -4,11 +4,14 @@ import { AuthenticatedCommand } from 'commands-base/authenticated-command';
 import { APP_ID_TO_ENTER, APP_VERSION_ID_TO_ENTER } from 'consts/messages';
 import { DynamicChoicesService } from 'services/dynamic-choices-service';
 import { listAppFeaturesByAppVersionId } from 'src/services/app-features-service';
-import { AppFeature } from 'src/types/services/app-features-service';
 import logger from 'utils/logger';
 
-const printAppFeatures = (appFeatures: Array<AppFeature>) => {
-  logger.table(appFeatures);
+type PrintableAppFeature = {
+  id: number;
+  name: string;
+  type: string;
+  status: string;
+  build: string;
 };
 
 export default class AppFeatureList extends AuthenticatedCommand {
@@ -29,7 +32,7 @@ export default class AppFeatureList extends AuthenticatedCommand {
 
   DEBUG_TAG = 'app_feature_list';
 
-  public async run(): Promise<void> {
+  public async run(): Promise<Array<PrintableAppFeature>> {
     const { flags } = await this.parse(AppFeatureList);
 
     const appId = flags.appId;
@@ -50,7 +53,7 @@ export default class AppFeatureList extends AuthenticatedCommand {
       return process.exit(0);
     }
 
-    const printableAppFeatures = appFeatures.map(appFeature => {
+    const printableAppFeatures: Array<PrintableAppFeature> = appFeatures.map(appFeature => {
       const build =
         appFeature.current_release?.data?.url ||
         appFeature.data?.microFrontendName ||
@@ -66,6 +69,10 @@ export default class AppFeatureList extends AuthenticatedCommand {
       };
     });
 
-    printAppFeatures(printableAppFeatures);
+    if (!this.jsonEnabled()) {
+      logger.table(printableAppFeatures);
+    }
+
+    return printableAppFeatures;
   }
 }

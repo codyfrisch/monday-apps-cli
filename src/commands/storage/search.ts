@@ -13,18 +13,6 @@ import logger from 'utils/logger';
 const clientAccountNumberMessage = 'Client account number';
 const termMessage = 'Term to search for';
 
-const printStorageKeyValuesResults = (itemsFound: AppStorageApiRecordsSearchResponseSearchSchema) => {
-  const maxValueLengthToPrint = 35;
-  for (const record of itemsFound.records) {
-    record.valueLength = record?.value?.length;
-    if (record?.value?.length > maxValueLengthToPrint) {
-      record.value = `${record.value.slice(0, maxValueLengthToPrint - 1)}`;
-    }
-  }
-
-  logger.table(itemsFound.records);
-};
-
 export default class Search extends AuthenticatedCommand {
   static description = 'Search keys and values stored on monday for a specific customer account.';
 
@@ -45,7 +33,7 @@ export default class Search extends AuthenticatedCommand {
     }),
   });
 
-  public async run(): Promise<void> {
+  public async run(): Promise<AppStorageApiRecordsSearchResponseSearchSchema> {
     const { flags } = await this.parse(Search);
     let { appId, clientAccountId, term } = flags;
     try {
@@ -67,13 +55,26 @@ export default class Search extends AuthenticatedCommand {
       }
 
       const itemsFound = await getStorageItemsSearch(appId, clientAccountId, term);
-      printStorageKeyValuesResults(itemsFound);
 
-      if (itemsFound.cursor) {
-        logger.log('There more records, please search for a more specific term.');
+      if (!this.jsonEnabled()) {
+        const maxValueLengthToPrint = 35;
+        const displayRecords = itemsFound.records.map(record => ({
+          ...record,
+          valueLength: record?.value?.length,
+          value:
+            record?.value?.length > maxValueLengthToPrint
+              ? `${record.value.slice(0, maxValueLengthToPrint - 1)}`
+              : record.value,
+        }));
+        logger.table(displayRecords);
+
+        if (itemsFound.cursor) {
+          logger.log('There more records, please search for a more specific term.');
+        }
       }
 
       this.preparePrintCommand(this, { appId, clientAccountId, term });
+      return itemsFound;
     } catch (error: unknown) {
       logger.debug(error);
       if (error instanceof HttpError) {
